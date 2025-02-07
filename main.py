@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
@@ -17,7 +18,6 @@ app.add_middleware(
 )
 
 
-# Define the data model for a Skin
 class Skin(BaseModel):
     Id: int
     Name: str
@@ -25,7 +25,7 @@ class Skin(BaseModel):
     WeaponName: str
     RarityName: str
     PictureUrl: str
-
+    
 class SkinUpdate(BaseModel):
     Id : Optional[int]
     Name: Optional[str]
@@ -33,6 +33,34 @@ class SkinUpdate(BaseModel):
     WeaponName: Optional[str]
     RarityName: Optional[str]
     PictureUrl: Optional[str]
+
+def read_csv(file_name) -> List[Skin]:
+    df = pd.read_csv(file_name)
+    return [Skin(**row) for row in df.to_dict(orient="records")]
+
+@app.get("/skins/", response_class=HTMLResponse)
+async def get_all_skins():
+    skins = read_csv("CSGOSkins2.csv")
+
+    if not skins:
+        return HTMLResponse(content="<p>No skins found.</p>")
+
+    html_content = "<div>"
+    for skin in skins:
+        html_content += f"""
+        <div class="skin-card">
+            <h2>{skin.Name}</h2>  <!-- Fixed: Now using dot notation -->
+            <p><strong>Weapon:</strong> {skin.WeaponName}</p>
+            <p><strong>Rarity:</strong> {skin.RarityName}</p>
+            <img src="{skin.PictureUrl}" alt="Weapon Image" style="max-width: 200px;">
+        </div>
+        <hr>
+        """
+    html_content += "</div>"
+
+    return HTMLResponse(content=html_content)
+
+
 
 # Read the data from the CSV file into a list of Skin objects
 def read_csv(file_path):
@@ -44,10 +72,28 @@ def read_csv(file_path):
             skin_list.append(skin)
     return skin_list
 
-# Get all skins
-@app.get("/skins/", response_model=List[Skin])
+@app.get("/skins/", response_class=HTMLResponse)
 async def get_all_skins():
-    return read_csv("CSGOSkins2.csv")
+    skins = read_csv("CSGOSkins2.csv")
+
+    if not skins:
+        return HTMLResponse(content="<p>No skins found.</p>")
+
+    html_content = "<div>"
+    for skin in skins:
+        html_content += f"""
+        <div class="skin-card">
+            <h2>{skin["Name"]}</h2>
+            <p><strong>Weapon:</strong> {skin["WeaponName"]}</p>
+            <p><strong>Rarity:</strong> {skin["RarityName"]}</p>
+            <img src="{skin["PictureUrl"]}" alt="Weapon Image" style="max-width: 200px;">
+        </div>
+        <hr>
+        """
+    html_content += "</div>"
+
+    return HTMLResponse(content=html_content)
+
 
 # Get a specific skin by ID
 @app.get("/skins/{skin_id}", response_model=Skin)
@@ -251,4 +297,3 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(app, host="127.0.0.1", port=80)
-
