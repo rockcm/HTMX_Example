@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weapon Details</title>
+    <script src="https://unpkg.com/htmx.org@1.9.4"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .weapon-container {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            display: inline-block;
+        }
+        img {
+            max-width: 300px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>CS:GO Weapon Details</h1>
+    <button hx-get="http://localhost:80/skins/" hx-target="#weapon-details" hx-swap="innerHTML">
+        Load Weapon Details
+    </button>
+    
+    <div id="weapon-details" class="weapon-container">
+        <!-- Response will be injected here -->
+    </div>
+</body>
+</html>
